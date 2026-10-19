@@ -4544,6 +4544,13 @@ AllowTwoSide.Interaction.Group = 0
 
 AllowTwoSide.Interaction.Guild = 0
 
+#    Guild.AllowSaltAndBonesName
+#        Allow exactly "Salt & Bones" through charter-name character validation.
+#        Length, reserved-name and profanity checks still apply; other names are unchanged.
+#        Default: 0 (Disabled)
+
+Guild.AllowSaltAndBonesName = 0
+
 #
 #    AllowTwoSide.Interaction.Arena
 #        Description: Allow joining arena teams between factions.

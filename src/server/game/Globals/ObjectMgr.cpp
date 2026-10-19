@@ -9350,6 +9350,10 @@ bool ObjectMgr::IsValidCharterName(std::string_view name)
     if (sObjectMgr->IsProfanityName(name))
         return false;
 
+    // Our guild keeps its exact spelling; every other charter still uses the ordinary character rules.
+    if (name == "Salt & Bones" && sConfigMgr->GetOption<bool>("Guild.AllowSaltAndBonesName", false))
+        return true;
+
     uint32 strictMask = sWorld->getIntConfig(CONFIG_STRICT_CHARTER_NAMES);
 
     return isValidString(wname, strictMask, true);
