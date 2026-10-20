@@ -11701,7 +11701,7 @@ void Player::InitPrimaryProfessions()
 void Player::NotifyMoneyChange(uint32 before, uint32 after, MoneyChangeSource source)
 {
     if (before != after && source != MoneyChangeSource::Load &&
-        sConfigMgr->GetOption<bool>("Economy.MoneyChangeEvent", false))
+        sWorld->getBoolConfig(CONFIG_ECONOMY_MONEY_CHANGE_EVENT))
         sScriptMgr->OnPlayerAfterMoneyChanged(this, before, after, static_cast<uint8>(source));
 }
 

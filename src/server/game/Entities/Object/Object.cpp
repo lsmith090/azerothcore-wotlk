@@ -615,7 +615,7 @@ class RawMoneyObservation
 {
 public:
     RawMoneyObservation(Object* object, uint32 index, uint32 count)
-        : _player(object->GetTypeId() == TYPEID_PLAYER && index <= PLAYER_FIELD_COINAGE &&
+        : _player(object->IsPlayer() && index <= PLAYER_FIELD_COINAGE &&
                   count > PLAYER_FIELD_COINAGE - index ? object->ToPlayer() : nullptr),
           _before(_player ? _player->GetMoney() : 0) { }
     ~RawMoneyObservation() { if (_player) _player->ObserveRawMoneyChange(_before); }
