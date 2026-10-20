@@ -202,6 +202,8 @@ void WorldConfig::BuildConfigCache()
     SetConfigValue<bool>(CONFIG_CHAT_FILTER_YELL, "ChatFilter.Yell", false);
     SetConfigValue<bool>(CONFIG_CHAT_FILTER_EMOTE, "ChatFilter.Emote", false);
 
+    SetConfigValue<bool>(CONFIG_ECONOMY_MONEY_CHANGE_EVENT, "Economy.MoneyChangeEvent", false, ConfigValueCache::Reloadable::Yes);
+
     SetConfigValue<bool>(CONFIG_ALLOW_TWO_SIDE_ACCOUNTS, "AllowTwoSide.Accounts", true);
     SetConfigValue<bool>(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CALENDAR, "AllowTwoSide.Interaction.Calendar", false);
     SetConfigValue<bool>(CONFIG_ALLOW_TWO_SIDE_INTERACTION_CHAT, "AllowTwoSide.Interaction.Chat", false);

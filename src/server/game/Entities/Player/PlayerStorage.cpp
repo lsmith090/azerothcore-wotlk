@@ -5120,7 +5120,7 @@ bool Player::LoadFromDB(ObjectGuid playerGuid, CharacterDatabaseQueryHolder cons
     uint32 money = fields[8].Get<uint32>();
     if (money > MAX_MONEY_AMOUNT)
         money = MAX_MONEY_AMOUNT;
-    SetMoney(money);
+    SetMoney(money, MoneyChangeSource::Load);
 
     SetByteValue(PLAYER_BYTES, 0, fields[9].Get<uint8>());
     SetByteValue(PLAYER_BYTES, 1, fields[10].Get<uint8>());
@@ -5740,6 +5740,7 @@ bool Player::LoadFromDB(ObjectGuid playerGuid, CharacterDatabaseQueryHolder cons
         if (!HasAuraState((AuraStateType)m_spellInfo->CasterAuraState))
             aura->HandleAllEffects(itr->second, AURA_EFFECT_HANDLE_REAL, false);
     }
+    _moneyObservationReady = true;
     return true;
 }
 

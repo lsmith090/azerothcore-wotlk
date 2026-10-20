@@ -753,6 +753,9 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
 
     CheckAllAchievementCriteria();
 
+    _moneyObservationReady = true;
+    NotifyMoneyChange(0, GetMoney(), MoneyChangeSource::Creation);
+
     return true;
 }
 
@@ -11694,6 +11697,25 @@ void Player::InitPrimaryProfessions()
     SetFreePrimaryProfessions(sWorld->getIntConfig(CONFIG_MAX_PRIMARY_TRADE_SKILL));
 }
 
+// Observational only: the event runs after storage and cannot replace the amount. DB hydration is not income.
+void Player::NotifyMoneyChange(uint32 before, uint32 after, MoneyChangeSource source)
+{
+    if (before != after && source != MoneyChangeSource::Load &&
+        sWorld->getBoolConfig(CONFIG_ECONOMY_MONEY_CHANGE_EVENT))
+        sScriptMgr->OnPlayerAfterMoneyChanged(this, before, after, static_cast<uint8>(source));
+}
+
+void Player::SetMoney(uint32 value, MoneyChangeSource source)
+{
+    uint32 before = GetMoney();
+    _managedMoneyWrite = true;
+    SetUInt32Value(PLAYER_FIELD_COINAGE, value);
+    _managedMoneyWrite = false;
+    NotifyMoneyChange(before, value, source);
+    MoneyChanged(value);
+    UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_GOLD_VALUE_OWNED);
+}
+
 bool Player::ModifyMoney(int32 amount, bool sendError /*= true*/)
 {
     if (!amount)
@@ -11702,7 +11724,7 @@ bool Player::ModifyMoney(int32 amount, bool sendError /*= true*/)
     sScriptMgr->OnPlayerMoneyChanged(this, amount);
 
     if (amount < 0)
-        SetMoney (GetMoney() > uint32(-amount) ? GetMoney() + amount : 0);
+        SetMoney(GetMoney() > uint32(-amount) ? GetMoney() + amount : 0, MoneyChangeSource::Modify);
     else
     {
         // Trial account money cap (0 disables the cap)
@@ -11717,7 +11739,7 @@ bool Player::ModifyMoney(int32 amount, bool sendError /*= true*/)
         }
 
         if (GetMoney() < uint32(MAX_MONEY_AMOUNT - amount))
-            SetMoney(GetMoney() + amount);
+            SetMoney(GetMoney() + amount, MoneyChangeSource::Modify);
         else
         {
             if (sendError)

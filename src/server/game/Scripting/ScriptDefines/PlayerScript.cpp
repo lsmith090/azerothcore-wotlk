@@ -1016,3 +1016,8 @@ PlayerScript::PlayerScript(char const* name, std::vector<uint16> enabledHooks)
 }
 
 template class AC_GAME_API ScriptRegistry<PlayerScript>;
+
+void ScriptMgr::OnPlayerAfterMoneyChanged(Player* player, uint32 before, uint32 after, uint8 source)
+{
+    CALL_ENABLED_HOOKS(PlayerScript, PLAYERHOOK_ON_AFTER_MONEY_CHANGED, script->OnPlayerAfterMoneyChanged(player, before, after, source));
+}

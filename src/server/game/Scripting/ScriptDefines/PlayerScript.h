@@ -235,6 +235,7 @@ enum PlayerHook
     PLAYERHOOK_ON_BEFORE_RECEIVE_SPELL_LIST_FROM_TRAINER,
     PLAYERHOOK_ON_GET_TRAINER_SPELL_STATE,
     PLAYERHOOK_ON_AFTER_TRAIN_SPELL,
+    PLAYERHOOK_ON_AFTER_MONEY_CHANGED,
     PLAYERHOOK_END
 };
 
@@ -303,6 +304,8 @@ public:
 
     // Called when a player's money is modified (before the modification is done)
     virtual void OnPlayerMoneyChanged(Player* /*player*/, int32& /*amount*/) { }
+
+    virtual void OnPlayerAfterMoneyChanged(Player* /*player*/, uint32 /*before*/, uint32 /*after*/, uint8 /*source*/) { }
 
     // Called before looted money is added to a player
     virtual void OnPlayerBeforeLootMoney(Player* /*player*/, Loot* /*loot*/) {}
