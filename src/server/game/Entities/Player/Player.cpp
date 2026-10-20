@@ -753,6 +753,7 @@ bool Player::Create(ObjectGuid::LowType guidlow, CharacterCreateInfo* createInfo
 
     CheckAllAchievementCriteria();
 
+    _moneyObservationReady = true;
     NotifyMoneyChange(0, GetMoney(), MoneyChangeSource::Creation);
 
     return true;
@@ -11707,7 +11708,9 @@ void Player::NotifyMoneyChange(uint32 before, uint32 after, MoneyChangeSource so
 void Player::SetMoney(uint32 value, MoneyChangeSource source)
 {
     uint32 before = GetMoney();
+    _managedMoneyWrite = true;
     SetUInt32Value(PLAYER_FIELD_COINAGE, value);
+    _managedMoneyWrite = false;
     NotifyMoneyChange(before, value, source);
     MoneyChanged(value);
     UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_HIGHEST_GOLD_VALUE_OWNED);

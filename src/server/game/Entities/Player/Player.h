@@ -1082,7 +1082,7 @@ struct PendingSpellCastRequest
         : spellId(spellId), category(category), requestPacket(std::move(packet)), isItem(item) , cancelInProgress(cancel) {}
 };
 
-enum class MoneyChangeSource : uint8 { Direct = 0, Modify = 1, Load = 2, Creation = 3 };
+enum class MoneyChangeSource : uint8 { Direct = 0, Modify = 1, Load = 2, Creation = 3, Raw = 4 };
 
 class Player : public Unit, public GridObject<Player>
 {
@@ -1642,6 +1642,15 @@ public:
 
     void SetMoney(uint32 value, MoneyChangeSource source = MoneyChangeSource::Direct);
     void NotifyMoneyChange(uint32 before, uint32 after, MoneyChangeSource source);
+    void ObserveRawMoneyChange(uint32 before)
+    {
+        if (_moneyObservationReady && !_managedMoneyWrite)
+            NotifyMoneyChange(before, GetMoney(), MoneyChangeSource::Raw);
+    }
+private:
+    bool _moneyObservationReady = false;
+    bool _managedMoneyWrite = false;
+public:
 
     [[nodiscard]] RewardedQuestSet const& getRewardedQuests() const { return m_RewardedQuests; }
     QuestStatusMap& getQuestStatusMap() { return m_QuestStatus; }

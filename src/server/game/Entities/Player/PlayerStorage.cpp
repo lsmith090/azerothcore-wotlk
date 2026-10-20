@@ -5740,6 +5740,7 @@ bool Player::LoadFromDB(ObjectGuid playerGuid, CharacterDatabaseQueryHolder cons
         if (!HasAuraState((AuraStateType)m_spellInfo->CasterAuraState))
             aura->HandleAllEffects(itr->second, AURA_EFFECT_HANDLE_REAL, false);
     }
+    _moneyObservationReady = true;
     return true;
 }
 

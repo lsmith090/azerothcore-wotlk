@@ -607,8 +607,27 @@ uint32 Object::GetUpdateFieldData(Player const* target, uint32*& flags) const
     return visibleFlag;
 }
 
+// Observe the actual coinage word, including overlapping wide writes and early bulk-parse returns.
+// SetMoney emits its own source-tagged event and suppresses this observer; hydration/creation are not raw income.
+namespace
+{
+class RawMoneyObservation
+{
+public:
+    RawMoneyObservation(Object* object, uint32 index, uint32 count)
+        : _player(object->GetTypeId() == TYPEID_PLAYER && index <= PLAYER_FIELD_COINAGE &&
+                  count > PLAYER_FIELD_COINAGE - index ? object->ToPlayer() : nullptr),
+          _before(_player ? _player->GetMoney() : 0) { }
+    ~RawMoneyObservation() { if (_player) _player->ObserveRawMoneyChange(_before); }
+private:
+    Player* _player;
+    uint32 _before;
+};
+}
+
 bool Object::_LoadIntoDataField(std::string const& data, uint32 startOffset, uint32 count)
 {
+    RawMoneyObservation moneyObservation(this, startOffset, count);
     if (data.empty())
         return false;
 
@@ -634,6 +653,7 @@ bool Object::_LoadIntoDataField(std::string const& data, uint32 startOffset, uin
 
 void Object::SetInt32Value(uint16 index, int32 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (m_int32Values[index] != value)
@@ -647,6 +667,7 @@ void Object::SetInt32Value(uint16 index, int32 value)
 
 void Object::SetUInt32Value(uint16 index, uint32 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (m_uint32Values[index] != value)
@@ -660,6 +681,7 @@ void Object::SetUInt32Value(uint16 index, uint32 value)
 
 void Object::UpdateUInt32Value(uint16 index, uint32 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     m_uint32Values[index] = value;
@@ -668,6 +690,7 @@ void Object::UpdateUInt32Value(uint16 index, uint32 value)
 
 void Object::SetUInt64Value(uint16 index, uint64 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 2);
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
 
     if (*((uint64*) & (m_uint32Values[index])) != value)
@@ -683,6 +706,7 @@ void Object::SetUInt64Value(uint16 index, uint64 value)
 
 bool Object::AddGuidValue(uint16 index, ObjectGuid value)
 {
+    RawMoneyObservation moneyObservation(this, index, 2);
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
 
     if (value && !*((ObjectGuid*)&(m_uint32Values[index])))
@@ -701,6 +725,7 @@ bool Object::AddGuidValue(uint16 index, ObjectGuid value)
 
 bool Object::RemoveGuidValue(uint16 index, ObjectGuid value)
 {
+    RawMoneyObservation moneyObservation(this, index, 2);
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
 
     if (value && *((ObjectGuid*)&(m_uint32Values[index])) == value)
@@ -720,6 +745,7 @@ bool Object::RemoveGuidValue(uint16 index, ObjectGuid value)
 
 void Object::SetGuidValue(uint16 index, ObjectGuid value)
 {
+    RawMoneyObservation moneyObservation(this, index, 2);
     ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
 
     if (*((ObjectGuid*)&(m_uint32Values[index])) != value)
@@ -734,6 +760,7 @@ void Object::SetGuidValue(uint16 index, ObjectGuid value)
 
 void Object::SetFloatValue(uint16 index, float value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (m_floatValues[index] != value)
@@ -747,6 +774,7 @@ void Object::SetFloatValue(uint16 index, float value)
 
 void Object::SetByteValue(uint16 index, uint8 offset, uint8 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (offset > 3)
@@ -767,6 +795,7 @@ void Object::SetByteValue(uint16 index, uint8 offset, uint8 value)
 
 void Object::SetUInt16Value(uint16 index, uint8 offset, uint16 value)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (offset > 1)
@@ -835,6 +864,7 @@ void Object::ApplyModPositiveFloatValue(uint16 index, float  val, bool apply)
 
 void Object::SetFlag(uint16 index, uint32 newFlag)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
     uint32 oldval = m_uint32Values[index];
     uint32 newval = oldval | newFlag;
@@ -850,6 +880,7 @@ void Object::SetFlag(uint16 index, uint32 newFlag)
 
 void Object::RemoveFlag(uint16 index, uint32 oldFlag)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
     ASSERT(m_uint32Values);
 
@@ -901,6 +932,7 @@ void Object::ApplyModFlag(uint16 index, uint32 flag, bool apply)
 
 void Object::SetByteFlag(uint16 index, uint8 offset, uint8 newFlag)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (offset > 3)
@@ -920,6 +952,7 @@ void Object::SetByteFlag(uint16 index, uint8 offset, uint8 newFlag)
 
 void Object::RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag)
 {
+    RawMoneyObservation moneyObservation(this, index, 1);
     ASSERT(index < m_valuesCount || PrintIndexError(index, true));
 
     if (offset > 3)
